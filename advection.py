@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 from advectionHelpers import cosBell, squareWave
-from schemesBasic import FTBS, CTCS, FTCS, SemiLagrangian, SemiLagrangian2
+from schemesBasic import FTBS, CTCS, FTCS, LinearSemiLagrangian, CubicSemiLagrangian
 
 # First make sure that the plots folder exists
 if not os.path.exists("plots"):
@@ -75,12 +75,19 @@ def compareSchemeSnapshots(init, schemes, outFile,
     plt.savefig("plots/"+outFile)
 
 # List of functions to do the advection
-schemes = [FTBS, CTCS, FTCS]
+#schemes = [FTBS, CTCS, FTCS]
 
 #Need to keep this one for section 3
-compareSchemeSnapshots(cosBell, schemes, "basicSchemesCos.pdf",
-                       nx = 40, nt = 10, u = 1, endTime = 0.1, xLim = [0,1], a = 0.1, b = 0.5)
+#compareSchemeSnapshots(cosBell, schemes, "basicSchemesCos.pdf",
+ #                      nx = 40, nt = 10, u = 1, endTime = 0.1, xLim = [0,1], a = 0.1, b = 0.5)
 
-compareSchemeSnapshots(squareWave, schemes, "basicSchemesSquare.pdf",
-                       nx = 40, nt = 10, u = 1, endTime = 0.1, xLim = [0,1], a = 0.1, b = 0.5)
+#compareSchemeSnapshots(squareWave, schemes, "basicSchemesSquare.pdf",
+#                       nx = 40, nt = 10, u = 1, endTime = 0.1, xLim = [0,1], a = 0.1, b = 0.5)
 
+#schemes = [FTBS, CTCS, SemiLagrangian, SemiLagrangian2]
+
+#compareSchemeSnapshots(cosBell, schemes, "NewSchemesCos.pdf",
+#                       nx = 40, nt = 10, u = 1, endTime = 0.1, xLim = [0,1], a = 0.1, b = 0.5)
+
+#compareSchemeSnapshots(squareWave, schemes, "NewSchemesSquare.pdf",
+#                       nx = 40, nt = 10, u = 1, endTime = 0.1, xLim = [0,1], a = 0.1, b = 0.5)

@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 from advectionHelpers import cosBell, squareWave, l2error, amp_ratio, Mass_diff
-from schemesBasic import FTBS, CTCS, FTCS, SemiLagrangian, SemiLagrangian2
+from schemesBasic import FTBS, CTCS, FTCS, LinearSemiLagrangian, CubicSemiLagrangian
 
 # First make sure that the plots folder exists
 if not os.path.exists("plots"):
@@ -17,8 +17,8 @@ def evolveScheme(init, schemes,
                            nx = 40, nt = 10, u = 1, endTime = 0.3,
                            xLim = [0,1],a = 0, b = 0.5):
     '''
-    Author: Hilary Weller <h.weller@reading.ac.uk>
-    Compares snapshots of results of advection schemes using periodic boundaries
+    Author: Hilary Weller <h.weller@reading.ac.uk> & Becks Lovell <r.lovell@pgr.reading.ac.uk>
+    Modified versrion of ComparesSchemeSnapshots to run the numerical schemes and store final solutions
     Parameters:
         nx (int): The number of points in space
         init (callable): Function to set the initial conditions.
@@ -32,34 +32,32 @@ def evolveScheme(init, schemes,
         yLim (tuple): The minimum (yLim[0]) and maximum (yLim[1]) y values of
                       the graph. If [None,None] is specified then default limits
                       are used.
+        a (float): The start of the non-zero section in ICs
+        b (float): The end of the non-zero section in ICs
     Returns:
-        None
+        Output 
     '''
     Output = {}
-    #changed init to call a and b as well so that I can change this for corrant number tests
+    #changed init to call a and b to enable later width testing
     # Derived parameters
     dx = (xLim[1] - xLim[0])/nx
     x = np.arange(xLim[0], xLim[1], dx)
     c = nx*u*endTime/(nt*(xLim[1] - xLim[0])) # Courant number, dt*u/dx
+    #print('Courant number =', c)
 
     Output['x'] = x
-    #dt = endTime/nt
-    print('Courant number =', c)
     
     # Set the initial conditions
     phi0 = init(x,a,b)
     Output['Initial'] = phi0.copy()
-    # Colours for each line
-    #cols = ['blue', 'red', 'green', 'cyan', 'magenta', 'brown', 'purple',
-    #        'pink', 'orange', 'gray', 'orange']
     
-    # Find and plot the analytic solution
+    # Find the analytic solution
     phiA = init((x - u*endTime)%(xLim[1] - xLim[0]), a, b)
     Output['Analytic'] = phiA.copy()
     #plt.figure()
     #plt.plot(x, phiA, 'k', label = "Analytic", linewidth=2)
     
-    # Calculate the results of all of the schemes and plot
+    # Calculate the results of all of the schemes
     for scheme in schemes:
         # The solution, phi, is stored as a list of arrays at different time
         # steps, phiLevels. Initially just the initial conditions. The latest
@@ -67,7 +65,6 @@ def evolveScheme(init, schemes,
         phiLevels = [phi0.copy()]
         for n in range(nt):
             scheme(phiLevels, c)
-        #plt.plot(x, phiLevels[-1], cols[i], label = schemes[i].__name__)
         #want to add final to stored list
         Output[scheme.__name__] = phiLevels[-1].copy()
 
@@ -82,7 +79,7 @@ def evolveScheme(init, schemes,
     #plt.savefig("plots/"+outFile)
 
 # List of functions to do the advection
-schemes = [FTBS,CTCS,SemiLagrangian,SemiLagrangian2]
+schemes = [FTBS,CTCS,LinearSemiLagrangian,CubicSemiLagrangian]
 
 
 #Need to keep this one for section 3
@@ -97,22 +94,11 @@ schemes = [FTBS,CTCS,SemiLagrangian,SemiLagrangian2]
 #plt.show()
 
 def selectCourants(nx = 40, nt = 10, u = 1, endTime = 0.1, xLim = [0,1]):
-    #courants = np.linspace(cMin, cMax, nC)
     Output = {}
     dx = (xLim[1] - xLim[0])/nx
-    x = np.arange(xLim[0], xLim[1], dx)
-    #dt = endTime/nt
-    #c = nx*u*endTime/(nt*(xLim[1] - xLim[0])) # Courant number, dt*u/dx
-    #print('Courant number =', c)
-        
-    #nt=np.zeros(len(courants))
     desiredCourants = np.linspace(0.05, 5, 50)
-    nts = np.round(
-    u*endTime/(desiredCourants*dx)
-    ).astype(int)   
-    #nts = np.arange(5, 100)
+    nts = np.round(u*endTime/(desiredCourants*dx)).astype(int)   
 
-    #courants = nx*u*endTime/(nts*(xLim[1]-xLim[0]))
     courants = u*(endTime/nts)/dx 
     mask = (courants >= 0.05) & (courants <= 5)
 
@@ -126,8 +112,6 @@ def selectCourants(nx = 40, nt = 10, u = 1, endTime = 0.1, xLim = [0,1]):
     nts, indices = np.unique(nts, return_index=True)
     courants = courants[indices]
     
-    #print(nts)
-    #print(courants)
     Output['nts'] = nts
     Output['courants'] = courants
     return(Output)
@@ -159,7 +143,6 @@ def parameterSweep(
         varyWidth=False,
         varyTime=False,
         fixedCourant=0.8,
-        RealAnalytical = 0,
         init = cosBell):
 
     metrics = initialiseMetricStorage(schemes)
@@ -214,65 +197,28 @@ def parameterSweep(
         for scheme in schemes:
 
             name = scheme.__name__
-            if RealAnalytical == 0:
-                metrics[name]["L2"].append(
-                    l2error(
-                        A[name],
-                        A["Analytic"]
-                    )
+            
+            metrics[name]["L2"].append(
+                l2error(
+                    A[name],
+                    A["Analytic"]
                 )
+            )
 
-                metrics[name]["Mass"].append(
-                    Mass_diff(
-                        A[name],
-                        A["Analytic"],
-                        dx
-                    )
+            metrics[name]["Mass"].append(
+                Mass_diff(
+                    A[name],
+                    A["Analytic"],
+                    dx
                 )
+            )
 
-                metrics[name]["Amp"].append(
-                    amp_ratio(
-                        A[name],
-                        A["Analytic"],
-                    )
+            metrics[name]["Amp"].append(
+                amp_ratio(
+                    A[name],
+                    A["Analytic"],
                 )
-            #else:
-            #    #want to run against a much higher resolution analytical solution (much smaller grid spacing)
-            #    nx = nx*4
-            #    B = evolveScheme(
-            #                cosBell,
-            #                schemes = [],
-            #                nx=nx,
-            #                nt=currentNt,
-            #                u=u,
-            #                endTime=endTime,
-            #                xLim=xLim,
-            #                a=a,
-            #                b=b
-            #            )
-                #phiA = cosBell((x - u*endTime)%(xLim[1] - xLim[0]), a, b)
-            #    metrics[name]["L2"].append(
-            #        l2error(
-            #            A[name],
-            #            B["Analytic"]
-            #        )
-            #    )
-
-            #    metrics[name]["Mass"].append(
-            #        Mass_diff(
-            #            A[name],
-            #            B["Analytic"],
-            #            dx
-            #        )
-            #    )
-
-            #    metrics[name]["Amp"].append(
-            #        amp_ratio(
-            #            A[name],
-            #            B["Analytic"],
-            #        )
-            #    )                
-
+            )                
     return metrics
 
 
@@ -284,24 +230,32 @@ def plotMetric(
         xlabel,
         ylabel,
         title,
-        ymax = [None, None],
+        yLim = [None, None],
+        xLim = [None, None],
         logy=False 
         ):
-
+    
+    cols = {'FTBS': 'blue',
+            'CTCS': 'red',
+            'FTCS': 'green',
+            'LinearSemiLagrangian': 'cyan',
+            'CubicSemiLagrangian': 'magenta'}
+    
     plt.figure()
 
     for schemeName in metricStorage:
-
+        
         plt.plot(
             x,
             metricStorage[schemeName][metricName],
+            color=cols.get(schemeName, "black"),
             label=schemeName
         )
 
     if logy:
         plt.yscale("log")
-    else:
-        plt.ylim(ymax)
+    plt.xlim(xLim)
+    plt.ylim(yLim)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
@@ -342,8 +296,7 @@ plotMetric(
     "Courant Number",
     "Mass Difference",
     "Mass Difference vs Courant Number",
-    logy=True
-    #ymax= [0,0.04] 
+    logy=True 
 )
 
 plotMetric(
@@ -354,7 +307,7 @@ plotMetric(
     "Courant Number",
     "Amplitude Ratio",
     "Amplitude Ratio vs Courant Number",
-    ymax = [0,2]
+    yLim = [0,2]
 )
 
 widthCells = np.array([20,15,10,8,6,4,3,2,1.5,1])

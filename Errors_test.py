@@ -148,7 +148,7 @@ def Errors_vs_Courant(init, schemes, outFile,
 
 schemes = [FTBS, CTCS, FTCS, SemiLagrangian, SemiLagrangian2]
 
-def Profiles_vs_Courant(init, schemes, outFile,
+def Profiles_vs_Courant(init, schemes,
                         nx=40, u=1, endTime=0.4,
                         xLim=[0,1], a=0, b=0.5,
                         cVals=[0.5,1,2,5]):
@@ -194,9 +194,8 @@ def Profiles_vs_Courant(init, schemes, outFile,
         plt.ylabel(r'$\phi$')
         plt.legend()
         plt.show()
-        plt.savefig("plots/"+outFile)
 
-def Error_vs_Courant(init, schemes, outFile,
+def Error_vs_Courant(init, schemes,
                      nx=40, u=1, endTime=0.4,
                      xLim=[0,1], a=0, b=0.5,
                      cMin=0.1, cMax=5, nC=50):
@@ -250,9 +249,8 @@ def Error_vs_Courant(init, schemes, outFile,
     plt.legend()
     plt.grid()
     plt.show()
-    plt.savefig("plots/"+outFile)
 
-def Growth_vs_Courant(init, schemes, outFile,
+def Growth_vs_Courant(init, schemes,
                       nx=40, u=1, endTime=0.4,
                       xLim=[0,1], a=0, b=0.5,
                       cMin=0.1, cMax=5, nC=50):
@@ -309,7 +307,7 @@ def Growth_vs_Courant(init, schemes, outFile,
     plt.legend()
     plt.grid()
     plt.show()
-    plt.savefig("plots/"+outFile)
+
 schemes = [
     FTBS,
     FTCS,
@@ -321,7 +319,7 @@ schemes = [
 Profiles_vs_Courant(
     cosBell,
     schemes,
-    cVals=[0.5,1,2,5], outFile="Profiles_vs_Courant_Errors.pdf"
+    cVals=[0.5,1,2,5]
 )
 
 Error_vs_Courant(
@@ -329,7 +327,7 @@ Error_vs_Courant(
     schemes,
     cMin=0.1,
     cMax=5,
-    nC=50, outFile="Error_vs_Courant_Errors.pdf"
+    nC=50
 )
 
 Growth_vs_Courant(
@@ -337,5 +335,5 @@ Growth_vs_Courant(
     schemes,
     cMin=0.1,
     cMax=5,
-    nC=50, outFile="Growth_vs_Courant_Errors.pdf"
+    nC=50
 )

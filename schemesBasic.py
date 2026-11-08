@@ -95,7 +95,7 @@ def CTCS(phiLevels, c):
     phiLevels.pop(0)
     return None
 
-def SemiLagrangian(phiLevels, c):
+def LinearSemiLagrangian(phiLevels, c):
     '''
     CHANGE THE BELOW BEFORE YOU SUBMIT!!!!!!!!!!!!
 
@@ -131,7 +131,7 @@ def SemiLagrangian(phiLevels, c):
     phiLevels.pop(0)
     return None
 
-def SemiLagrangian2(phiLevels, c):
+def CubicSemiLagrangian(phiLevels, c):
     '''
     CHANGE THE BELOW BEFORE YOU SUBMIT!!!!!!!!!!!!
 

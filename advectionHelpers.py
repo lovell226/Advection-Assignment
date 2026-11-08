@@ -33,7 +33,7 @@ def l2error(phi, phiA):
     l2 = np.sqrt(np.sum(phiError**2)/np.sum(phiA**2))
     return l2
 
-def l_inf_error(phi, phiA):
+#def l_inf_error(phi, phiA):
     '''
     Returns the l infinity error norm of phi in comparison to exact solution phiA.
     Parameters:
@@ -42,9 +42,9 @@ def l_inf_error(phi, phiA):
     Returns
         l_inf (float): The l infinity error norm
     '''
-    phiError = phi - phiA
-    l_inf = np.max(np.abs(phiError))
-    return l_inf
+#    phiError = phi - phiA
+#    l_inf = np.max(np.abs(phiError))
+#    return l_inf
 
 def Mass_diff(phi, phiA, dx):
     '''
@@ -55,8 +55,6 @@ def Mass_diff(phi, phiA, dx):
     Returns
         Mass (float): The relative change in mass
     '''
-    #mass0 = np.sum(np.abs(phi))*dx
-    #massA = np.sum(np.abs(phiA))*dx
     mass0 = np.sum(phi)*dx
     massA = np.sum(phiA)*dx
     Mass = np.abs(mass0-massA)/massA
@@ -64,7 +62,7 @@ def Mass_diff(phi, phiA, dx):
 
 def amp_ratio(phi, phiA):
     '''
-    Returns the amp ratio of phi in comparison to exact solution phiA.
+    Returns the max amp ratio of phi in comparison to exact solution phiA.
     Parameters:
         phi (1darray): The numerical solution
         phiA (1darray): The analytic solution
@@ -74,15 +72,15 @@ def amp_ratio(phi, phiA):
     amp = np.max(phi)/np.max(phiA)
     return amp
 
-def peak_shift(x, phi, phiA):
+#def peak_shift(x, phi, phiA):
     '''
     Distance between numerical and exact peak locations
     '''
 
-    peak_num = x[np.argmax(phi)]
-    peak_exact = x[np.argmax(phiA)]
+#    peak_num = x[np.argmax(phi)]
+#    peak_exact = x[np.argmax(phiA)]
 
-    return peak_num - peak_exact
+#    return peak_num - peak_exact
 
 #def error_all_calc(phi, phiA):
 #    errors = []
@@ -90,15 +88,14 @@ def peak_shift(x, phi, phiA):
 
 def squareWave(x, a, b):
     '''
-    Returns a uniform distrbution type shape between parameters a and b
+    Returns a square 'wave' between parameters a and b
     Parameters:
         x (1darray): The x-locations for calculating the shape.
-        a (float): The start of the non-zero jump
-        b (float): The end of the non-zero jump
+        a (float): The start of the non-zero section
+        b (float): The end of the non-zero section
     Returns:
-        phi : 1darray. A unifrom distribution type shape between x=a and x=b
+        phi : 1darray. A square wave between x = a and x = b
     '''
     #ie 0 at all points except between a and b when = 1
-    return np.where((x > a) & (x < b), 
-                    1., 0.)
+    return np.where((x > a) & (x < b), 1., 0.)
 
