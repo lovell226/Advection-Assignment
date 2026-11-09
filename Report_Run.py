@@ -9,7 +9,7 @@ import os
 from advectionHelpers import cosBell, squareWave, l2error, amp_ratio
 from schemesBasic import FTBS, CTCS, FTCS, LinearSemiLagrangian, CubicSemiLagrangian
 from advection import compareSchemeSnapshots
-from function_setup import evolveScheme, selectCourants, initialiseMetricStorage, parameterSweep, plotMetric
+from function_setup import evolveScheme, selectCourants, MetricStore, parameterSweep, plotMetric
 
 # First make sure that the plots folder exists
 if not os.path.exists("plots"):
