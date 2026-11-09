@@ -6,8 +6,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-from advectionHelpers import cosBell, squareWave, l2error, amp_ratio, Mass_diff
-from schemesBasic import FTBS, CTCS, FTCS, LinearSemiLagrangian, CubicSemiLagrangian
+from advectionHelpers import cosBell, l2error, amp_ratio
 
 # First make sure that the plots folder exists
 if not os.path.exists("plots"):
@@ -17,7 +16,6 @@ def evolveScheme(init, schemes,
                            nx = 40, nt = 10, u = 1, endTime = 0.3,
                            xLim = [0,1],a = 0, b = 0.5):
     '''
-    Author: Hilary Weller <h.weller@reading.ac.uk> & Becks Lovell <r.lovell@pgr.reading.ac.uk>
     Modified versrion of ComparesSchemeSnapshots to run the numerical schemes and store final solutions
     Parameters:
         nx (int): The number of points in space
@@ -35,15 +33,13 @@ def evolveScheme(init, schemes,
         a (float): The start of the non-zero section in ICs
         b (float): The end of the non-zero section in ICs
     Returns:
-        Output 
+        Output (array): x, initial conditions, analytic solution and final state for all schemes
     '''
     Output = {}
-    #changed init to call a and b to enable later width testing
     # Derived parameters
     dx = (xLim[1] - xLim[0])/nx
     x = np.arange(xLim[0], xLim[1], dx)
     c = nx*u*endTime/(nt*(xLim[1] - xLim[0])) # Courant number, dt*u/dx
-    #print('Courant number =', c)
 
     Output['x'] = x
     
@@ -54,8 +50,6 @@ def evolveScheme(init, schemes,
     # Find the analytic solution
     phiA = init((x - u*endTime)%(xLim[1] - xLim[0]), a, b)
     Output['Analytic'] = phiA.copy()
-    #plt.figure()
-    #plt.plot(x, phiA, 'k', label = "Analytic", linewidth=2)
     
     # Calculate the results of all of the schemes
     for scheme in schemes:
@@ -65,49 +59,24 @@ def evolveScheme(init, schemes,
         phiLevels = [phi0.copy()]
         for n in range(nt):
             scheme(phiLevels, c)
-        #want to add final to stored list
+        # add final to stored list
         Output[scheme.__name__] = phiLevels[-1].copy()
 
     return Output
-    #plt.xlim(xLim)
-    #plt.ylim(yLim)
-    #plt.xlim(xLim)
-    #plt.ylim(-0.2, 2)
-    #plt.xlabel('x')
-    #plt.ylabel(r'$\phi$')
-    #plt.legend()
-    #plt.savefig("plots/"+outFile)
-
-# List of functions to do the advection
-schemes = [FTBS,CTCS,LinearSemiLagrangian,CubicSemiLagrangian]
 
 
-#Need to keep this one for section 3
-#test = (evolveScheme(cosBell, schemes,
-#                       nx = 40, nt = 10, u = 1, endTime = 0.1, xLim = [0,1], a = 0.1, b = 0.5))
-
-#plt.figure()
-#plt.plot(test['x'],test['Analytic'], label='Analytic')
-#plt.plot(test['x'],test['FTBS'], label='FTBS')
-#plt.plot(test['x'],test['FTCS'], label='FTCS')
-#plt.plot(test['x'],test['CTCS'], label='CTCS')
-#plt.show()
-
-def selectCourants(nx = 40, nt = 10, u = 1, endTime = 0.1, xLim = [0,1]):
+def selectCourants(nx = 40, u = 1, endTime = 0.1, xLim = [0,1]):
     Output = {}
     dx = (xLim[1] - xLim[0])/nx
     desiredCourants = np.linspace(0.05, 5, 50)
     nts = np.round(u*endTime/(desiredCourants*dx)).astype(int)   
-
+    # calculate courant numbers to ensure all nt divide endTime exactly
     courants = u*(endTime/nts)/dx 
+    # to remove courant numbers outside our desired range
     mask = (courants >= 0.05) & (courants <= 5)
-
     courants = courants[mask]
     nts = nts[mask]
-    
-    for i in range(len(courants)):
-        nts[i]=np.ceil((u*endTime)/(courants[i]*dx))
-        courants[i]=u*(endTime/nts[i])/dx
+
     #remove any duplicates as a result of rounding
     nts, indices = np.unique(nts, return_index=True)
     courants = courants[indices]
@@ -116,20 +85,15 @@ def selectCourants(nx = 40, nt = 10, u = 1, endTime = 0.1, xLim = [0,1]):
     Output['courants'] = courants
     return(Output)
 
-Courant_test = selectCourants(nx = 40, nt = 10, u = 1, endTime = 2.0, xLim = [0,1])
 
-def initialiseMetricStorage(schemes):
-
+def MetricStore(schemes):
+    # To store all errors for our schemes
     metrics = {}
-
     for scheme in schemes:
-
         metrics[scheme.__name__] = {
             "L2": [],
-            "Mass": [],
             "Amp": []
         }
-
     return metrics
 
 def parameterSweep(
@@ -145,41 +109,30 @@ def parameterSweep(
         fixedCourant=0.8,
         init = cosBell):
 
-    metrics = initialiseMetricStorage(schemes)
+    metrics = MetricStore(schemes)
 
     for value in parameterValues:
-
+        # for width experiments:
         if varyWidth:
-
             centre = 0.3
-
             a = centre - value/2
             b = centre + value/2
-
             currentNt = nt
             currentEndTime = endTime
+        # for longer time testing with fixed courant:
         elif varyTime:
             currentEndTime = value
-
             dx = (xLim[1]-xLim[0])/nx
-
             # keep Courant number fixed
-            currentNt = int(
-                np.round(
-                    currentEndTime*u/(fixedCourant*dx)
-                )
-            )
-
+            currentNt = int(np.round(currentEndTime*u/(fixedCourant*dx)))
             a = 0.1
             b = 0.5
         else:
-
             currentNt = value
             currentEndTime = endTime
-
             a = 0.1
             b = 0.5
-
+        # the run the schemes for new parameters
         A = evolveScheme(
             init,
             schemes,
@@ -195,30 +148,13 @@ def parameterSweep(
         dx = (xLim[1]-xLim[0])/nx
 
         for scheme in schemes:
-
+            # add the calculated errors to the stored metric list
             name = scheme.__name__
             
-            metrics[name]["L2"].append(
-                l2error(
-                    A[name],
-                    A["Analytic"]
-                )
-            )
+            metrics[name]["L2"].append(l2error(A[name],A["Analytic"]))
 
-            metrics[name]["Mass"].append(
-                Mass_diff(
-                    A[name],
-                    A["Analytic"],
-                    dx
-                )
-            )
+            metrics[name]["Amp"].append(amp_ratio(A[name],A["Analytic"],))
 
-            metrics[name]["Amp"].append(
-                amp_ratio(
-                    A[name],
-                    A["Analytic"],
-                )
-            )                
     return metrics
 
 
@@ -234,7 +170,8 @@ def plotMetric(
         xLim = [None, None],
         logy=False 
         ):
-    
+    # seperate function to plot all metric plots
+    # so colours are consistent across report
     cols = {'FTBS': 'blue',
             'CTCS': 'red',
             'FTCS': 'green',
@@ -260,142 +197,6 @@ def plotMetric(
     plt.ylabel(ylabel)
     plt.title(title)
 
-    #plt.grid()
-
     plt.legend()
 
     plt.savefig("plots/"+outFile)
-
-Courant_test = selectCourants(
-    nx=40,
-    endTime=2.0
-)
-
-courantMetrics = parameterSweep(
-    Courant_test["nts"],
-    schemes,
-    endTime=2.0
-)
-
-plotMetric(
-    Courant_test["courants"],
-    "L2_Courant.pdf",
-    courantMetrics,
-    "L2",
-    "Courant Number",
-    "L2 Error",
-    "L2 Error vs Courant Number",
-    logy=True
-)
-
-plotMetric(
-    Courant_test["courants"],
-    "Mass_Conservation_Courant.pdf",
-    courantMetrics,
-    "Mass",
-    "Courant Number",
-    "Mass Difference",
-    "Mass Difference vs Courant Number",
-    logy=True 
-)
-
-plotMetric(
-    Courant_test["courants"],
-    "Amp_Courant.pdf",
-    courantMetrics,
-    "Amp",
-    "Courant Number",
-    "Amplitude Ratio",
-    "Amplitude Ratio vs Courant Number",
-    yLim = [0,2]
-)
-
-widthCells = np.array([20,15,10,8,6,4,3,2,1.5,1])
-
-widths = widthCells*(1/40)
-
-widthMetrics = parameterSweep(
-    widths,
-    schemes,
-    varyWidth=True,
-    nx = 40,
-    nt = 15,
-    endTime = 0.3,
-)
-
-plotMetric(
-    widthCells,
-    "L2_Width.pdf",
-    widthMetrics,
-    "L2",
-    "Bell Width",
-    "L2 Error",
-    "L2 Error vs Width",
-    logy=True
-)
-
-plotMetric(
-    widthCells,
-    "Amp_Width.pdf",
-    widthMetrics,
-    "Amp",
-    "Bell Width",
-    "Amplitude Ratio",
-    "Amplitude Ratio vs Width"
-)
-
-#for a time test
-times = [0.5, 1, 2, 5, 10, 20]
-timeMetrics = parameterSweep(
-    times,
-    schemes,
-    varyTime=True
-)
-plotMetric(
-    times,
-    "L2_Time.pdf",
-    timeMetrics,
-    "L2",
-    "Time",
-    "L2 Error",
-    "L2 Error vs Time (C=0.8)",
-    logy=True
-)
-
-plotMetric(
-    times,
-    "Mass_Time.pdf",
-    timeMetrics,
-    "Mass",
-    "Time",
-    "Mass Error",
-    "Mass Error vs Time (C=0.8)",
-    logy=True
-)
-plotMetric(
-    times,
-    "Amp_Time.pdf",
-    timeMetrics,
-    "Amp",
-    "Time",
-    "Amplitude Ratio",
-    "Amplitude Ratio vs Time (C=0.8)"
-)
-
-times2 = [0.5, 1, 2, 5, 10, 20]
-timeMetrics2 = parameterSweep(
-    times,
-    schemes,
-    varyTime=True,
-    init=squareWave
-)
-plotMetric(
-    times2,
-    "L2_Time_square.pdf",
-    timeMetrics2,
-    "L2",
-    "Time",
-    "L2 Error",
-    "L2 Error vs Time (C=0.8)",
-    logy=True
-)

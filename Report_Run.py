@@ -1,12 +1,12 @@
 ###############################################################################
-# Date Revised: 17 Sept 2025
-# Author: Hilary Weller <h.weller@reading.ac.uk>
-# Description: Basic tests of advection schemes
+# Date Revised: 08 Nov 2026
+# Author: Becks Lovell <r.lovell@pgr.reading.ac.uk>
+# Description: All tests of Advection schemes
 ###############################################################################
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-from advectionHelpers import cosBell, squareWave, l2error, amp_ratio, Mass_diff
+from advectionHelpers import cosBell, squareWave, l2error, amp_ratio
 from schemesBasic import FTBS, CTCS, FTCS, LinearSemiLagrangian, CubicSemiLagrangian
 from advection import compareSchemeSnapshots
 from function_setup import evolveScheme, selectCourants, initialiseMetricStorage, parameterSweep, plotMetric
@@ -19,7 +19,7 @@ if not os.path.exists("plots"):
 
 schemesbasic = [FTBS, CTCS, FTCS]
 
-compareSchemeSnapshots(cosBell, schemesbasic, "basicSchemesCos.pdf",
+compareSchemeSnapshots(cosBell, schemesbasic, "basicSchemesCosBell.pdf",
                        nx = 40, nt = 10, u = 1, endTime = 0.1, xLim = [0,1], a = 0.1, b = 0.5)
 
 compareSchemeSnapshots(squareWave, schemesbasic, "basicSchemesSquare.pdf",
@@ -49,57 +49,34 @@ plotMetric(
     "L2",
     "Courant Number",
     r'$\ell_2$ error',
-    "L2 Error vs Courant Number",
-    logy=True,
+    "L2 Error vs Courant Number - CosBell",
+    logy=True,  
     yLim=[0,10]
 )
 
-plotMetric(
-    Courant_test["courants"],
-    "Amp_Courant.pdf",
-    courantMetrics,
-    "Amp",
-    "Courant Number",
-    "Amplitude Ratio",
-    "Amplitude Ratio vs Courant Number",
-    yLim = [0,2]
-)
 
 # for sqaure wave:
 courantMetrics2 = parameterSweep(Courant_test["nts"],schemes,endTime=2.0, init=squareWave)
 
 plotMetric(
     Courant_test["courants"],
-    "L2_Courant2.pdf",
+    "Square_L2_Courant.pdf",
     courantMetrics2,
     "L2",
     "Courant Number",
     r'$\ell_2$ error',
-    "L2 Error vs Courant Number",
+    "L2 Error vs Courant Number - Square Wave",
     logy=True,
     yLim=[0,10]
 )
 
-plotMetric(
-    Courant_test["courants"],
-    "Amp_Courant2.pdf",
-    courantMetrics2,
-    "Amp",
-    "Courant Number",
-    "Amplitude Ratio",
-    "Amplitude Ratio vs Courant Number",
-    yLim = [0,2]
-)
 
 # example plots for section 5.2 - courant number of 2.0
 compareSchemeSnapshots(cosBell, schemes, "cos_courant_large.pdf",
-                       nx = 40, nt = 40, u = 1, endTime = 2.0, xLim = [0,1], a = 0.1, b = 0.5, yLim=[-0.1,1.1])
+                       nx = 40, nt = 50, u = 1, endTime = 2.0, xLim = [0,1], a = 0.1, b = 0.5, yLim=[-0.1,1.1])
 
 compareSchemeSnapshots(squareWave, schemes, "square_courant_large.pdf",
-                       nx = 40, nt = 40, u = 1, endTime = 2.0, xLim = [0,1], a = 0.1, b = 0.5, yLim=[-0.1,1.1])
-
-compareSchemeSnapshots(squareWave, schemes, "square_courant_1.pdf",
-                       nx = 20, nt = 40, u = 1, endTime = 2.0, xLim = [0,1], a = 0.1, b = 0.5, yLim=[-0.1,1.1])
+                       nx = 40, nt = 50, u = 1, endTime = 2.0, xLim = [0,1], a = 0.1, b = 0.5, yLim=[-0.1,1.1])
 
 # plots for section 5.3 - spatial scale testing
 
@@ -120,9 +97,9 @@ plotMetric(
     "L2_Width.pdf",
     widthMetrics,
     "L2",
-    "Bell Width",
-    "L2 Error",
-    "L2 Error vs Width",
+    "Number of Spatial Cells",
+    r'$\ell_2$ error',
+    "L2 Error vs Width - CosBell",
     logy=True
 )
 
@@ -131,9 +108,9 @@ plotMetric(
     "Amp_Width.pdf",
     widthMetrics,
     "Amp",
-    "Bell Width",
+    "Number of Spatial Cells",
     "Amplitude Ratio",
-    "Amplitude Ratio vs Width"
+    "Amplitude Ratio vs Width - CosBell"
 )
 
 widthMetrics2 = parameterSweep(
@@ -151,9 +128,9 @@ plotMetric(
     "Square_L2_Width.pdf",
     widthMetrics2,
     "L2",
-    "Bell Width",
-    "L2 Error",
-    "L2 Error vs Width",
+    "Number of Spatial Cells",
+    r'$\ell_2$ error',
+    "L2 Error vs Width - Square Wave",
     logy=True
 )
 
@@ -162,9 +139,9 @@ plotMetric(
     "Square_Amp_Width.pdf",
     widthMetrics2,
     "Amp",
-    "Bell Width",
+    "Number of Spatial Cells",
     "Amplitude Ratio",
-    "Amplitude Ratio vs Width"
+    "Amplitude Ratio vs Width - Square Wave"
 )
 
 # snapshots for section 5.3

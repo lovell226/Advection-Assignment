@@ -1,5 +1,5 @@
 # Numerical schemes for solving the advection equation
-# Authors: Hilary Weller <h.weller@reading.ac.uk>
+# Authors: Hilary Weller <h.weller@reading.ac.uk> & Becks Lovell <r.lovell@pgr.reading.ac.uk>
 
 import numpy as np
 
@@ -97,17 +97,14 @@ def CTCS(phiLevels, c):
 
 def LinearSemiLagrangian(phiLevels, c):
     '''
-    CHANGE THE BELOW BEFORE YOU SUBMIT!!!!!!!!!!!!
-
-
-    ####Author: Hilary Weller <h.weller@reading.ac.uk>
-    #####Solves the linear advection equation for one time step using FTBS.
-    #####phiLevels is updated. Nothing is returned
-    #####Parameters:
+    Solves the linear advection equation for one time step using Semi-Lagrangian with Linear 
+        interpolation.
+    phiLevels is updated. Nothing is returned
+    Parameters:
         phiLevels ([1darray]): A list length one containing a 1darray which is
                          the latest value of phi, to be updated.
         c (float): The Courant number
-    #####Returns:
+    Returns:
         None
     '''
     # add another time level to the list, copying from the most recent
@@ -115,16 +112,12 @@ def LinearSemiLagrangian(phiLevels, c):
     # Labels for phi at time levels n and n+1
     phiOld = phiLevels[0]
     phiNew = phiLevels[1]
-    #time steps still set as n and n+1
 
     # Update phi for all points
     nx = len(phiOld)
     for i in range(nx):
-        #k=int(np.floor(i-c))%len(phiOld) #to make deparure point periodic
         k=int(np.floor(i-c))
         #For linear interpolation 
-        #I think there is an issue with negative indexing here?? is it the fact that k can be -1
-        #phiNew[i] = (k+1-(i-c))*phiOld[k] + ((i-c)-k)*phiOld[(k+1)%len(phiOld)]
         phiNew[i] = (k+1-(i-c))*phiOld[k] + ((i-c)-k)*phiOld[(k+1)%nx]
     
     # Remove the old value of phiLevels
@@ -133,17 +126,14 @@ def LinearSemiLagrangian(phiLevels, c):
 
 def CubicSemiLagrangian(phiLevels, c):
     '''
-    CHANGE THE BELOW BEFORE YOU SUBMIT!!!!!!!!!!!!
-
-
-    ####Author: Hilary Weller <h.weller@reading.ac.uk>
-    #####Solves the linear advection equation for one time step using FTBS.
-    #####phiLevels is updated. Nothing is returned
-    #####Parameters:
+    Solves the linear advection equation for one time step using Semi-Lagrangian with Cubic 
+        interpolation.
+    phiLevels is updated. Nothing is returned
+    Parameters:
         phiLevels ([1darray]): A list length one containing a 1darray which is
-                         the latest value of phi, to be updated.
+                            the latest value of phi, to be updated.
         c (float): The Courant number
-    #####Returns:
+    Returns:
         None
     '''
     # add another time level to the list, copying from the most recent
@@ -151,19 +141,13 @@ def CubicSemiLagrangian(phiLevels, c):
     # Labels for phi at time levels n and n+1
     phiOld = phiLevels[0]
     phiNew = phiLevels[1]
-    #time steps still set as n and n+1
 
     # Update phi for all points
     nx = len(phiOld)
     for i in range(nx):
         k=int(np.floor(i-c))
-        #k=int(np.floor(i-c))%len(phiOld)
-
         beta = i-k-c
-        #For linear interpolation 
-        #I think there is an issue with negative indexing here?? is it the fact that k can be -1
-        #does this make sense to have the mod nx???
-        #phiNew[i] = (-1/6)*beta*(1-beta)*(2-beta)*phiOld[(k-1)%nx] + (1/2)*(1+beta)*(1- beta)*(2-beta)*phiOld[(k)%nx]+(1/2)*(1+beta)*beta*(2-beta)*phiOld[(k+1)%nx]-(1/6)*(1+beta)*beta*(1-beta)*phiOld[(k+2)%nx]
+        #For cubic interpolation 
         phiNew[i] = (-1/6)*beta*(1-beta)*(2-beta)*phiOld[(k-1)%nx] + (1/2)*(1+beta)*(1- beta)*(2-beta)*phiOld[(k)]+(1/2)*(1+beta)*beta*(2-beta)*phiOld[(k+1)%nx]-(1/6)*(1+beta)*beta*(1-beta)*phiOld[(k+2)%nx]
 
     # Remove the old value of phiLevels

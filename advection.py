@@ -6,12 +6,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-from advectionHelpers import cosBell, squareWave
-from schemesBasic import FTBS, CTCS, FTCS, LinearSemiLagrangian, CubicSemiLagrangian
-
-# First make sure that the plots folder exists
-if not os.path.exists("plots"):
-    os.makedirs("plots")
 
 def compareSchemeSnapshots(init, schemes, outFile,
                            nx = 40, nt = 10, u = 1, endTime = 0.4,
@@ -35,7 +29,7 @@ def compareSchemeSnapshots(init, schemes, outFile,
     Returns:
         None
     '''
-    #changed init to call a and b as well so that I can change this for corrant number tests
+    # changed init to call a and b as well so that I can change this for courant tests
     # Derived parameters
     dx = (xLim[1] - xLim[0])/nx
     x = np.arange(xLim[0], xLim[1], dx)
@@ -49,6 +43,12 @@ def compareSchemeSnapshots(init, schemes, outFile,
     # Colours for each line
     cols = ['blue', 'red', 'green', 'cyan', 'magenta', 'brown', 'purple',
             'pink', 'orange', 'gray', 'orange']
+
+    cols = {'FTBS': 'blue',
+                'CTCS': 'red',
+                'FTCS': 'green',
+                'LinearSemiLagrangian': 'cyan',
+                'CubicSemiLagrangian': 'magenta'}
     
     # Find and plot the analytic solution
     phiA = init((x - u*endTime)%(xLim[1] - xLim[0]), a, b)
@@ -56,38 +56,18 @@ def compareSchemeSnapshots(init, schemes, outFile,
     plt.plot(x, phiA, 'k', label = "Analytic", linewidth=2)
     
     # Calculate the results of all of the schemes and plot
-    for i in range(len(schemes)):
+    for scheme in schemes:
         # The solution, phi, is stored as a list of arrays at different time
         # steps, phiLevels. Initially just the initial conditions. The latest
         # time level array is always phiLevels[-1]
         phiLevels = [phi0.copy()]
         for n in range(nt):
-            schemes[i](phiLevels, c)
-        plt.plot(x, phiLevels[-1], cols[i], label = schemes[i].__name__)
+            scheme(phiLevels, c)
+        plt.plot(x, phiLevels[-1], color=cols.get(scheme.__name__, 'black'), label = scheme.__name__)
     
     plt.xlim(xLim)
     plt.ylim(yLim)
-    #plt.xlim(xLim)
-    #plt.ylim(-0.2, 2)
     plt.xlabel('x')
     plt.ylabel(r'$\phi$')
     plt.legend()
     plt.savefig("plots/"+outFile)
-
-# List of functions to do the advection
-#schemes = [FTBS, CTCS, FTCS]
-
-#Need to keep this one for section 3
-#compareSchemeSnapshots(cosBell, schemes, "basicSchemesCos.pdf",
- #                      nx = 40, nt = 10, u = 1, endTime = 0.1, xLim = [0,1], a = 0.1, b = 0.5)
-
-#compareSchemeSnapshots(squareWave, schemes, "basicSchemesSquare.pdf",
-#                       nx = 40, nt = 10, u = 1, endTime = 0.1, xLim = [0,1], a = 0.1, b = 0.5)
-
-#schemes = [FTBS, CTCS, SemiLagrangian, SemiLagrangian2]
-
-#compareSchemeSnapshots(cosBell, schemes, "NewSchemesCos.pdf",
-#                       nx = 40, nt = 10, u = 1, endTime = 0.1, xLim = [0,1], a = 0.1, b = 0.5)
-
-#compareSchemeSnapshots(squareWave, schemes, "NewSchemesSquare.pdf",
-#                       nx = 40, nt = 10, u = 1, endTime = 0.1, xLim = [0,1], a = 0.1, b = 0.5)

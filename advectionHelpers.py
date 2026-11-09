@@ -1,6 +1,6 @@
 # Helper functions for testing advection schemes.
 # Authors: Hilary Weller <h.weller@reading.ac.uk>
-#          Becks Lovell <r.lovell@pgr.reading.ac.uk>
+#          & Becks Lovell <r.lovell@pgr.reading.ac.uk>
 
 import numpy as np
 
@@ -33,32 +33,6 @@ def l2error(phi, phiA):
     l2 = np.sqrt(np.sum(phiError**2)/np.sum(phiA**2))
     return l2
 
-#def l_inf_error(phi, phiA):
-    '''
-    Returns the l infinity error norm of phi in comparison to exact solution phiA.
-    Parameters:
-        phi (1darray): The numerical solution
-        phiA (1darray): The analytic solution
-    Returns
-        l_inf (float): The l infinity error norm
-    '''
-#    phiError = phi - phiA
-#    l_inf = np.max(np.abs(phiError))
-#    return l_inf
-
-def Mass_diff(phi, phiA, dx):
-    '''
-    Returns the change in mass of phi in comparison to exact solution phiA.
-    Parameters:
-        phi (1darray): The numerical solution
-        phiA (1darray): The analytic solution /or initial condition
-    Returns
-        Mass (float): The relative change in mass
-    '''
-    mass0 = np.sum(phi)*dx
-    massA = np.sum(phiA)*dx
-    Mass = np.abs(mass0-massA)/massA
-    return Mass
 
 def amp_ratio(phi, phiA):
     '''
@@ -67,23 +41,10 @@ def amp_ratio(phi, phiA):
         phi (1darray): The numerical solution
         phiA (1darray): The analytic solution
     Returns
-        amp (float): The lamplitude ratio
+        amp (float): The amplitude ratio
     '''
     amp = np.max(phi)/np.max(phiA)
     return amp
-
-#def peak_shift(x, phi, phiA):
-    '''
-    Distance between numerical and exact peak locations
-    '''
-
-#    peak_num = x[np.argmax(phi)]
-#    peak_exact = x[np.argmax(phiA)]
-
-#    return peak_num - peak_exact
-
-#def error_all_calc(phi, phiA):
-#    errors = []
 
 
 def squareWave(x, a, b):
@@ -96,6 +57,6 @@ def squareWave(x, a, b):
     Returns:
         phi : 1darray. A square wave between x = a and x = b
     '''
-    #ie 0 at all points except between a and b when = 1
+    #ie 0 at all points except between a and b where = 1
     return np.where((x > a) & (x < b), 1., 0.)
 
